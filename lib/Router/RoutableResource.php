@@ -4,46 +4,45 @@ namespace Router;
 class RoutableResource extends RoutableResources
 {
 	protected $name;
+
+	/**
+	 * Creates a `Resources` and allows to pass a DSL in
+	 *
+	 * @param string $name `Resources`'s name
+	 * @param closure $closure optional DSL to eval
+	 * @param array $options `Resources` options
+	 */
 	public function __construct($name, $closure, $options)
 	{
 		$this->name = $name;
 		$singularized_name = \Inflector::singularize($this->name);
 	
+		//no closure passed, only the options
 		if (is_array($closure) && array() === $options)
 		{ //resources('a', array('only' => ...))
 			$options = $closure;
 			$closure = null;
 		}
 		
+		//CRUD actions
 		$base_methods = array('show', 'new', 'create', 'edit', 'update', 'destroy');
 		$methods = $base_methods;
 		if (isset($options['only'])) //resources('articles', array('only' => 'index'))
-			$methods = (array) $options['only'];
+			$methods = array_intersect($methods, $options['only']); //should check ?
 		if (isset($options['except']))
-		{
-			$count_methods = count($methods);
-			$methods = array_intersect($methods, (array) $options['except']);
-			if (count($methods) > $count_methods)
-				throw new \InvalidArgumentException('You can\'t add method(s) through :except');
-		}
+			$methods = array_diff($methods, $options['except']);
 
+		//fill in the array with true/false values
 		$has = array();
 		foreach ($base_methods as $base_method)
 			$has[$base_method] = false;
 		foreach ($methods as $method)
 			$has[$method] = true;
 
-		$this->shallow_name = $singularized_name . '_';
-		$prev_shallow_path = $this->shallow_path;
-		$this->shallow_path = $singularized_name . '/';
-
 		$this->createRoutes($has);
-				
+		
 		if ($closure)
 			$this->collection($closure);
-
-		$this->shallow_path = $prev_shallow_path;
-		$this->shallow_name ='';
 	}
 	
 	protected function createRoutes($has)

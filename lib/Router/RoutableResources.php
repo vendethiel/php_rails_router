@@ -4,6 +4,14 @@ namespace Router;
 class RoutableResources extends AbstractRoutable
 {
 	protected $name;
+	
+	/**
+	 * Creates a `Resource` and allows to pass a DSL in
+	 *
+	 * @param string $name `Resource`'s name
+	 * @param closure $closure optional DSL to eval
+	 * @param array $options `Resource` options
+	 */
 	public function __construct($name, $closure, $options)
 	{
 		$this->name = $name;
@@ -16,35 +24,38 @@ class RoutableResources extends AbstractRoutable
 			$closure = null;
 		}
 	
+		//CRUD actions
 		$base_methods = array('index', 'show', 'new', 'create', 'edit', 'update', 'destroy');
 		$methods = $base_methods;
 		if (isset($options['only'])) //resources('articles', array('only' => 'index'))
-			$methods = (array) $options['only'];
+			$methods = array_intersect($methods, $options['only']); //should check ?
 		if (isset($options['except']))
-		{
-			$count_methods = count($methods);
-			$methods = array_intersect($methods, (array) $options['except']);
-			if (count($methods) > $count_methods)
-				throw new \InvalidArgumentException('You can\'t add method(s) through :except');
-		}
+			$methods = array_diff($methods, $options['except']);
 
+		//fill in the array with true/false values
 		$has = array();
 		foreach ($base_methods as $base_method)
 			$has[$base_method] = false;
 		foreach ($methods as $method)
 			$has[$method] = true;
 
-		$this->shallow_name = $singularized_name . '_';
-		$prev_shallow_path = $this->shallow_path;
-		$this->shallow_path = $this->name . '/:' . $singularized_name . '_id/';
+		//constraint only for the closure
+		$this->constraints[$singularized_name . '_id'] = '^[0-9]+$';
+
 		if ($closure)
 			$closure($this);
-		$this->shallow_path = $prev_shallow_path;
-		$this->shallow_name = '';
+
+		unset($this->constraints[$singularized_name . '_id']);
+		$this->shallow_path = $this->shallow_name = '';
 		
 		$this->createRoutes($has);
 	}
 	
+	/**
+	 * CRUD !
+	 *
+	 * @param array $has Which actions ?
+	 */
 	protected function createRoutes($has)
 	{
 		$name = $this->name;
@@ -80,23 +91,16 @@ class RoutableResources extends AbstractRoutable
 		if (is_array($closure) || is_string($closure))
 			$closure = $this->convertArrayToClosure((array) $closure, $options);
 
-		$prev_shallow_name = $this->shallow_name;
-		$prev_shallow_path = $this->shallow_path;
-		$this->shallow_name = $this->name . '_';
-		$this->shallow_path = $this->name . '/';
 		$collection = new RoutableCollection($this->name, $closure, $options);
 		$this->addSubRoutes($collection->getRoutes());
-		$this->shallow_name = $prev_shallow_name;
-		$this->shallow_path = $prev_shallow_path;
 	}
 	public function member($closure = null, $options = array())
 	{
 		if (is_array($closure) || is_string($closure))
 			$closure = $this->convertArrayToClosure((array) $closure, $options);
-		
-		$this->shallow_path = $this->name . '/:' . \Inflector::singularize($this->name) . '_id/';
-		$collection = new RoutableMember($this->name, $closure, $options);
-		$this->addSubRoutes($collection->getRoutes());
+
+		$member = new RoutableMember($this->name, $closure, $options);
+		$this->addSubRoutes($member->getRoutes());
 	}
 	
 	private function convertArrayToClosure($elements, $options)
@@ -105,7 +109,7 @@ class RoutableResources extends AbstractRoutable
 		return function ($r) use ($elements, $via)
 		{
 			foreach ($elements as $element)
-				$r->match($element, '', null, $via);
+				$r->match($element, '', null, array('via' => $via));
 		};
 	}
 	public function getRoot()
