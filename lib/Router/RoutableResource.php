@@ -6,7 +6,7 @@ class RoutableResource extends RoutableResources
 	protected $name;
 
 	/**
-	 * Creates a `Resources` and allows to pass a DSL in
+	 * Constructs a `Resources` and allows to pass a DSL in
 	 *
 	 * @param string $name `Resources`'s name
 	 * @param closure $closure optional DSL to eval
@@ -16,6 +16,7 @@ class RoutableResource extends RoutableResources
 	{
 		$this->name = $name;
 		$singularized_name = \Inflector::singularize($this->name);
+		$this->shallow_name = $name . '_';
 	
 		//no closure passed, only the options
 		if (is_array($closure) && array() === $options)

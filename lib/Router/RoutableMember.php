@@ -6,17 +6,27 @@ class RoutableMember extends NamedRoutable
 	/**
 	 * Constructs a `Member` routable
 	 *
-	 * @param string $name Resource name
-	 * @param closure $closure Closure to eval
-	 * @param 
+	 * {@inheritdoc}
 	 */
 	public function __construct($name, $closure)
 	{
 		parent::__construct(\Inflector::singularize($name));
 		$this->shallow_path = '/' . $this->name . '/:' . $this->name . '_id/';
-		$this->shallow_name = '';
+		$this->shallow_name = $this->name . '_';
 		
 		$closure($this);
+	}
+	
+	/**
+	 * {@inheritdoc}
+	 */
+	public function ns($ns_name, $closure)
+	{
+		$ns = new NamespacedRoutable($ns_name, $ns_name, $ns_name);
+		$closure($ns);
+		$routable = new Routable('', $ns_name, '');
+		$routable->addSubRoutes($ns);
+		$this->addSubRoutes($routable);
 	}
 	
 	/**
@@ -39,46 +49,6 @@ class RoutableMember extends NamedRoutable
 		
 		parent::match($find, $to, $as, $options);
 	}
-	
-	/**
-	 * Adds a namespace, meaning it adds the Ns to the path, the route name and the controller name
-	 *
-	 * @param string $ns Namespace name
-	 * @param closure $closure DSL to eval
-	 */
-	public function ns($ns, $closure)
-	{
-		$ns = new NamespacedRoutable($ns, $this->name . '_' . $ns, $ns);
-		$closure($ns);
-		$this->addSubRoutes($ns);
-	}
-	
-	
-	/**
-	 * Adds a scope, meaning it adds the Scope name to the path and the route name
-	 *
-	 * @param string $scope Scope name
-	 * @param closure $closure DSL to eval
-	 */
-	public function scope($scope, $closure)
-	{
-		$scope = new ScopedRoutable($this->name, $this->name . '_' . $scope, $scope);
-		$closure($scope);
-		$this->addSubRoutes($scope);
-	}
-	/**
-	 * Adds a prefix, meaning it adds the Prefix to the path
-	 *
-	 * @param string $prefix Prefix
-	 * @param closure $closure DSL to eval
-	 */
-	public function prefix($prefix, $closure)
-	{
-		$prefix = new PrefixedRoutable($prefix, $this->name, '');
-		$closure($prefix);
-		$this->addSubRoutes($prefix);
-	}
-	
 	
 	/**
 	 * {@inheritdoc}

@@ -6,7 +6,7 @@ class RoutableResources extends AbstractRoutable
 	protected $name;
 	
 	/**
-	 * Creates a `Resource` and allows to pass a DSL in
+	 * Constructs a `Resources` and allows to pass a DSL in
 	 *
 	 * @param string $name `Resource`'s name
 	 * @param closure $closure optional DSL to eval
@@ -16,7 +16,7 @@ class RoutableResources extends AbstractRoutable
 	{
 		$this->name = $name;
 		$singularized_name = \Inflector::singularize($this->name);
-//		$this->shallow_name = $singularized_name . '_';
+		$this->shallow_name = $name . '_';
 	
 		if (is_array($closure) && array() === $options)
 		{ //resources('a', array('only' => ...))
@@ -46,7 +46,6 @@ class RoutableResources extends AbstractRoutable
 			$closure($this);
 
 		unset($this->constraints[$singularized_name . '_id']);
-		$this->shallow_path = $this->shallow_name = '';
 		
 		$this->createRoutes($has);
 	}
@@ -76,7 +75,7 @@ class RoutableResources extends AbstractRoutable
 		$this->member(function ($r) use ($has, $name, $singularized_name)
 		{
 			if ($has['show'])
-				$r->get($name . '#show', '', $singularized_name);
+				$r->get($name . '#show', '', 'show');
 			if ($has['edit'])
 				$r->get('edit', $name . '#edit');
 			if ($has['update'])
@@ -86,6 +85,12 @@ class RoutableResources extends AbstractRoutable
 		});
 	}
 	
+	/**
+	 * Collection methods/closure -> applied on the collection, like "clear"
+	 *
+	 * @param mixed $closure Closure, string or array of methods
+	 * @param array $options
+	 */
 	public function collection($closure = null, $options = array())
 	{
 		if (is_array($closure) || is_string($closure))
@@ -94,25 +99,58 @@ class RoutableResources extends AbstractRoutable
 		$collection = new RoutableCollection($this->name, $closure, $options);
 		$this->addSubRoutes($collection->getRoutes());
 	}
+	
+	/**
+	 * Member methods/closure -> applied on one element, like "publish"
+	 *
+	 * @param mixed $closure Closure, string or array of methods
+	 * @param array $options
+	 */
 	public function member($closure = null, $options = array())
 	{
 		if (is_array($closure) || is_string($closure))
 			$closure = $this->convertArrayToClosure((array) $closure, $options);
 
 		$member = new RoutableMember($this->name, $closure, $options);
-		$this->addSubRoutes($member->getRoutes());
+		$this->addSubRoutes(array_map(function ($route)
+		{
+			if (!empty($route['as']))
+				$route['as'] = '!' . $route['as'];
+			return $route;
+		}, $member->getRoutes()));
 	}
 	
+	/**
+	 * Converts an array to a closure 
+	 * @see RoutableResources::collection
+	 * @see RoutableResources::member
+	 *
+	 * @param array|string $elements Elements array (or single element) to create element for
+	 * @param array $options
+	 * @return Closure Closure to be passed
+	 */
 	private function convertArrayToClosure($elements, $options)
 	{
 		$via = isset($options['via']) ? $options['via'] : Router::METHOD_GET;
 		return function ($r) use ($elements, $via)
 		{
 			foreach ($elements as $element)
-				$r->match($element, '', null, array('via' => $via));
+				$r->get($element, '', null);//, array('via' => $via));
 		};
 	}
+	
+	/**
+	 * Overrides to forbit call to root()
+	 */
 	public function getRoot()
+	{
+		throw new \RuntimeException('Not implemented');
+	}
+	
+	/**
+	 * Overrides to forbit call to root()
+	 */
+	public function root($to)
 	{
 		throw new \RuntimeException('Not implemented');
 	}

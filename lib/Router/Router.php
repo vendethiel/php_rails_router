@@ -90,10 +90,9 @@ class Router
 		$instance = new self($dsl);
 		return $instance;
 	}
+	
 	/**
-	 * HTTP Methods
-	 
-	 * @return array
+	 * @return array available HTTP Methods
 	 */
 	static public function getHttpMethods()
 	{

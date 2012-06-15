@@ -64,10 +64,10 @@ class Routable extends AbstractRoutable
 		else
 			$via = Router::getHttpMethods();
 
-		$as = null;
 		if (in_array(Router::METHOD_GET, $via))
 			$as = null === $as ? self::guessAs($to, $find) : $as;
-		$as = '_' === $as ? '_' : trim($as ? $this->shallow_name . $as : '', '_');
+		else
+			$as = '_' === $as ? '_' : trim($as ? $this->shallow_name . $as : '', '_');
 		
 		if (strpos($to, '#') === false)
 		{ //Try to guess the controller name, by the first $find-path's part
@@ -78,12 +78,12 @@ class Routable extends AbstractRoutable
 		if (isset($options['constraints'])) //if we have constraints, they may override ours
 			$constraints = array_merge($this->constraints, $options['constraints']);
 		else //else, just take the inherited
-			$constraints = $this->constraints;
+			$constraints = $this->constraints;	
 		
 		$this->routes[] = array(
 			'find' => trim($this->shallow_path . $find, '/'),
-			'to' => ucfirst($this->ns) . ucfirst($to),
-			'as' => $as,
+			'to' => ucfirst($to),
+			'as' => in_array(Router::METHOD_GET, $via) ? ($as ? $as : static::formatAs($as)) : null,
 			'via' => $via,
 			'constraints' => $constraints,
 		);
@@ -196,6 +196,7 @@ class Routable extends AbstractRoutable
 		$closure($scope);
 		$this->addSubRoutes($scope);
 	}
+	
 	/**
 	 * Adds a prefix, meaning it adds the Prefix to the path
 	 *
@@ -231,6 +232,14 @@ class Routable extends AbstractRoutable
 	}
 
 	/**
+	 * Must be overriden if needed
+	 */
+	protected function formatAs($as)
+	{
+		return $as;
+	}
+	
+	/**
 	 * Tries to guess the $as part of a match() call
 	 *
 	 * @param string $to Route controller/action part
@@ -244,7 +253,7 @@ class Routable extends AbstractRoutable
 
 		if (strpos($to, ':') !== false)
 			return null;
-		if (strpos($to, '/') === false)
+		if (strpos($to, '/') === false && '' != $find)
 			return $find;
 
 		return static::guessControllerAsPattern(str_replace('/', '_', $to), $find);
