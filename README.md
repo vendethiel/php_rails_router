@@ -1,5 +1,10 @@
 # Rails Router DSL for PHP
 This repository is a port of the Rails Router DSL for PHP.
+
+
+**Note:** You should not use or try anything with this project if you don't indent to shoot yourself soon enough
+
+
 ## Usage
 Use `Router\Routes::draw` and give it a closure. You will be nesting closure, in order to mimicate the DSL.
 The base routable will be injected into the closure as the argument, for example
