@@ -30,6 +30,7 @@ The fourth argument can either be an array, or just an unique value of the accep
 (note : the patch() method binds to put, but either are recognized)
 
 ### Namespaces
+**XXX** : change merging strategy to make it work
 You also have access to the method `ns` (namespace, but not allowed by PHP's parser - like if, or, ...).
 The ns() method adds a _PHP Namespace_ and namespaces the route name.
 As other extended methods, you have to pass a closure to it which will produce 
