@@ -75,7 +75,7 @@ class RoutableResources extends AbstractRoutable
 		$this->member(function ($r) use ($has, $name, $singularized_name)
 		{
 			if ($has['show'])
-				$r->get($name . '#show', '', 'show');
+				$r->get($singularized_name . '#show', '', 'show');
 			if ($has['edit'])
 				$r->get('edit', $name . '#edit');
 			if ($has['update'])

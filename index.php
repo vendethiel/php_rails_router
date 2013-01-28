@@ -6,10 +6,14 @@ function vdump(){call_user_func_array('vardump',func_get_args());exit;}
 
 $router = Router\Router::draw(function ($r)
 {
-	$r->resource('session');
 	$r->ns('admin', function ($r)
 	{
-		$r->resources('articles', function ($r)
+		$r->resources('articles', function ($a)
+		{
+			$a->resources('comments');
+		});
+	});
+		/*, function ($r)
 		{
 			$r->resources('comments', function ($r)
 			{
@@ -22,11 +26,12 @@ $router = Router\Router::draw(function ($r)
 		});
 	});
 	
+	$r->resource('session');
 	$r->get('products', 'products#index');
 	$r->get('products/:id', 'products#show');
 	$r->delete('products/:id', 'products#destroy');
 	$r->match('products/:id', 'products#show', 'product_show');
-	
+	*/
 	
 	$r->root('products#index');
 });

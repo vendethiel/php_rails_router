@@ -53,7 +53,7 @@ class RoutableMember extends NamedRoutable
 	/**
 	 * {@inheritdoc}
 	 */
-	static protected function guessControllerAsPattern($to)
+	static protected function guessControllerAsPattern($to, $find = null)
 	{
 		list($controller, $action) = explode('#', $to);
 		return \Inflector::singularize($controller) . '_' . $action;

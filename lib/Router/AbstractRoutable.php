@@ -45,7 +45,7 @@ abstract class AbstractRoutable
 			if ($sub_route['as'])
 			{
 				if ('_' === $sub_route['as'])
-					$sub_route['as'] = end(explode('/', $sub_route['find']));
+					$sub_route['as'] = basename($sub_route['find']);
 				else
 					$sub_route['as'] = trim($this->shallow_name . $sub_route['as'], '_');
 			}
