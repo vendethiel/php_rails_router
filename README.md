@@ -2,7 +2,7 @@
 This repository is a port of the Rails Router DSL for PHP.
 
 
-**Note:** You should not use or try anything with this project if you don't indent to shoot yourself soon enough
+**Note:** You should not use or try anything with this project if you don't indent to shoot yourself soon enough (I'd recommand Slim. The main problem is decribed in GH-1).
 
 
 ## Usage
