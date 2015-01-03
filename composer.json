@@ -1,5 +1,5 @@
 {
-    "name": "Nami-Doc/php_rails_router",
+    "name": "vendethiel/php_rails_router",
     "description": "Sprockets-PHP is the Rails Router DSL for PHP",
     "autoload": {
         "psr-0": {
